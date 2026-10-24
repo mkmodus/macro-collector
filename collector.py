@@ -9,9 +9,21 @@ if not GEMINI_KEY:
     raise ValueError("GEMINI_API_KEY가 등록되지 않았습니다.")
 
 genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
 
-# 2. 무료 글로벌 매크로 RSS 뉴스 피드 수집 (CNBC, 로이터 매크로 등)
+# 지원되는 생성 모델 자동 탐색 및 fallback 설정
+selected_model_name = "gemini-1.5-flash-latest"
+try:
+    for m in genai.list_models():
+        if "generateContent" in m.supported_generation_methods:
+            if "gemini-1.5-flash" in m.name:
+                selected_model_name = m.name
+                break
+except Exception:
+    pass
+
+model = genai.GenerativeModel(selected_model_name)
+
+# 2. 글로벌 매크로 RSS 뉴스 피드 수집
 FEED_URLS = [
     "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=Federal%20Reserve&target=rss",
     "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=BofA&target=rss"
@@ -53,4 +65,4 @@ with open(filename, "w", encoding="utf-8") as f:
     f.write(f"# 글로벌 매크로 내러티브 브리핑 ({today_str})\n\n")
     f.write(summary_result)
 
-print(f"보고서 저장 완료: {filename}")
+print(f"보고서 저장 완료: {filename} (사용 모델: {selected_model_name})")
