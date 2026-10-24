@@ -1,0 +1,40 @@
+name: Daily Macro Narrative Collector
+
+on:
+  schedule:
+    # GitHub 서버 기준(UTC) 설정: 한국 시간(KST = UTC+9)
+    # UTC 23:00 = 한국 시간 오전 08:00 (장 개장 전)
+    # UTC 07:00 = 한국 시간 오후 16:00 (장 마감 후)
+    - cron: '0 23 * * 0-4'
+    - cron: '0 7 * * 1-5'
+  workflow_dispatch: # 관리자가 원할 때 수동으로 즉시 실행할 수 있는 버튼 활성화
+
+jobs:
+  run-collector:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v3
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 필수 라이브러리 설치
+        run: |
+          pip install -r requirements.txt
+
+      - name: 수집 스크립트 실행
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python collector.py
+
+      - name: 생성된 보고서 저장소에 자동 저장(커밋)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Add latest macro report [skip ci]" && git push)
