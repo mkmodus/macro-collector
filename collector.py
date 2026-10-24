@@ -108,18 +108,18 @@ except Exception as e:
 today_str = datetime.now().strftime("%Y-%m-%d_%H%M")
 os.makedirs("reports", exist_ok=True)
 
-# 1) 히스토리용 리포트
-history_filename = f"reports/IB_Macro_Report_{today_str}.md"
-with open(history_filename, "w", encoding="utf-8") as f:
-    f.write(f"# 글로벌 매크로 내러티브 브리핑 ({today_str})\n\n")
-    f.write(f"> **Engine:** {target_model_name} | **Status:** Active\n\n")
-    f.write(analysis_text)
-
-# 2) 노트북 소스 연동용 최신 통합 파일
+# 1) 노트북 소스 연동용 최신 통합 파일 (항상 이 고정 파일명으로 덮어씀)
 latest_filename = "LATEST_MACRO_BRIEFING.md"
 with open(latest_filename, "w", encoding="utf-8") as f:
     f.write(f"# [최신] 글로벌 IB 매크로 내러티브 & 수급 브리핑\n")
     f.write(f"*최종 갱신 시각: {today_str}* | *엔진: {target_model_name}*\n\n")
+    f.write(analysis_text)
+
+# 2) 히스토리 보관용 일자별 리포트
+history_filename = f"reports/IB_Macro_Report_{today_str}.md"
+with open(history_filename, "w", encoding="utf-8") as f:
+    f.write(f"# 글로벌 매크로 내러티브 브리핑 ({today_str})\n\n")
+    f.write(f"> **Engine:** {target_model_name} | **Status:** Active\n\n")
     f.write(analysis_text)
 
 print(f"파이프라인 실행 완료: {latest_filename} 및 {history_filename} 생성 완료 (적용 모델: {target_model_name})")
