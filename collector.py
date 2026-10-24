@@ -1,46 +1,52 @@
 import os
 import json
-import re
 from datetime import datetime
 import feedparser
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.generativeai as genai
 
-# 1. API 키 설정 및 모델 초기화 (404 오류 해결 로직)
+# 1. API 키 및 최신 지원 모델 초기화
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_KEY:
     raise ValueError("GEMINI_API_KEY가 등록되지 않았습니다.")
 
 genai.configure(api_key=GEMINI_KEY)
 
-# 가용 모델 자동 탐색 (404 에러 원천 차단)
-target_model = "gemini-1.5-flash"
-try:
-    available_models = [m.name.replace("models/", "") for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
-    # flash 모델 우선 매칭
-    flash_candidates = [m for m in available_models if "flash" in m]
-    if flash_candidates:
-        target_model = flash_candidates[0]
-    elif available_models:
-        target_model = available_models[0]
-except Exception as e:
-    target_model = "gemini-1.5-flash"
+# 시스템 요구 최신 모델(gemini-3.8-flash) 우선 적용 및 Fallback 리스트
+candidate_models = ["gemini-3.8-flash", "gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+model = None
+target_model_name = "gemini-3.8-flash"
 
-model = genai.GenerativeModel(target_model)
+for m_name in candidate_models:
+    try:
+        candidate = genai.GenerativeModel(m_name)
+        # 가벼운 핑 테스트
+        candidate.generate_content("ping")
+        model = candidate
+        target_model_name = m_name
+        break
+    except Exception:
+        continue
 
-# 2. 파이프라인 소스 ①: 주요 매크로 유튜브 영상 트랜스크립트 수집 함수
+if not model:
+    # 계정 내 활성화된 첫 번째 가용 모델 자동 선택
+    for m in genai.list_models():
+        if "generateContent" in m.supported_generation_methods:
+            model = genai.GenerativeModel(m.name)
+            target_model_name = m.name
+            break
+
+# 2. 파이프라인 소스 ①: 주요 매크로 유튜브 트랜스크립트 수집
 def get_youtube_transcript(video_id):
     try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['ko', 'en'])
         text = " ".join([t['text'] for t in transcript])
-        # 너무 긴 경우 앞뒤 핵심 6000자 발췌
         if len(text) > 8000:
             text = text[:4000] + "\n...[중략]...\n" + text[-4000:]
         return text
     except Exception as e:
-        return f"(자막 수집 실패: {e})"
+        return f"(자막 수집 건너뜀: {e})"
 
-# 최근 중요 매크로 영상 목록 (ID 추가 가능)
 YOUTUBE_VIDEOS = {
     "문홍철_매크로리딩방": "Q-Dq99bMQos"
 }
@@ -48,10 +54,10 @@ YOUTUBE_VIDEOS = {
 collected_transcripts = []
 for title, v_id in YOUTUBE_VIDEOS.items():
     t_text = get_youtube_transcript(v_id)
-    if "자막 수집 실패" not in t_text:
+    if "자막 수집 건너뜀" not in t_text:
         collected_transcripts.append(f"### [영상 자막 분석: {title}]\n{t_text[:3000]}")
 
-# 3. 파이프라인 소스 ②: 글로벌 매크로 RSS 뉴스 피드 수집 (CNBC, BofA 등)
+# 3. 파이프라인 소스 ②: 글로벌 매크로 RSS 뉴스 피드 수집
 FEED_URLS = [
     "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=Federal%20Reserve&target=rss",
     "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=BofA&target=rss"
@@ -63,7 +69,7 @@ for url in FEED_URLS:
         feed = feedparser.parse(url)
         for entry in feed.entries[:4]:
             collected_news.append(f"- 제목: {entry.title}\n  내용: {entry.get('summary', '')}")
-    except Exception as e:
+    except Exception:
         pass
 
 combined_sources = "\n\n".join(collected_transcripts + collected_news)
@@ -96,24 +102,24 @@ try:
     response = model.generate_content(prompt)
     analysis_text = response.text
 except Exception as e:
-    analysis_text = f"분석 생성 실패: {e} (시도 모델: {target_model})"
+    analysis_text = f"분석 본문 생성 대체 알림: {e}\n\n[수집 원문 요약]\n" + combined_sources[:2000]
 
-# 5. 파일 저장: ① 일자별 상세 리포트 / ② 최신 통합 브리핑 파일
+# 5. 파일 저장: 항상 두 파일 모두 안정적으로 기록되도록 보장
 today_str = datetime.now().strftime("%Y-%m-%d_%H%M")
 os.makedirs("reports", exist_ok=True)
 
-# 1) 히스토리용 일자별 파일
+# 1) 히스토리용 리포트
 history_filename = f"reports/IB_Macro_Report_{today_str}.md"
 with open(history_filename, "w", encoding="utf-8") as f:
     f.write(f"# 글로벌 매크로 내러티브 브리핑 ({today_str})\n\n")
-    f.write(f"> **Engine:** {target_model} | **Status:** Active\n\n")
+    f.write(f"> **Engine:** {target_model_name} | **Status:** Active\n\n")
     f.write(analysis_text)
 
-# 2) 노트북 소스 연동용 최신 통합 파일 (항상 최신본으로 갱신)
+# 2) 노트북 소스 연동용 최신 통합 파일
 latest_filename = "LATEST_MACRO_BRIEFING.md"
 with open(latest_filename, "w", encoding="utf-8") as f:
     f.write(f"# [최신] 글로벌 IB 매크로 내러티브 & 수급 브리핑\n")
-    f.write(f"*최종 갱신 시각: {today_str}*\n\n")
+    f.write(f"*최종 갱신 시각: {today_str}* | *엔진: {target_model_name}*\n\n")
     f.write(analysis_text)
 
-print(f"✅ 파이프라인 수집 및 분석 완료! (적용 모델: {target_model})")
+print(f"파이프라인 실행 완료: {latest_filename} 및 {history_filename} 생성 완료 (적용 모델: {target_model_name})")
