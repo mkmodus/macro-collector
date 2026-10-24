@@ -41,6 +41,7 @@ def get_youtube_transcript(video_id):
     try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['ko', 'en'])
         text = " ".join([t['text'] for t in transcript])
+        # 영상이 길 경우 핵심 앞뒤 4000자 발췌
         if len(text) > 8000:
             text = text[:4000] + "\n...[중략]...\n" + text[-4000:]
         return text
@@ -59,7 +60,7 @@ collected_transcripts = []
 for title, v_id in YOUTUBE_VIDEOS.items():
     t_text = get_youtube_transcript(v_id)
     if "자막 수집 건너뜀" not in t_text:
-        collected_transcripts.append(f"### [영상 자막 분석: {title}]\n{t_text[:3000]}")
+        collected_transcripts.append(f"### [영상 자막 분석: {title}]\n{t_text[:2500]}")
 
 # 3. 파이프라인 소스 ②: 글로벌 매크로 RSS 뉴스 피드 수집
 FEED_URLS = [
@@ -77,6 +78,10 @@ for url in FEED_URLS:
         pass
 
 combined_sources = "\n\n".join(collected_transcripts + collected_news)
+
+# 수집 데이터 안전판
+if not combined_sources.strip():
+    combined_sources = "(수집된 외부 원문이 없습니다. 최근 글로벌 거시경제 컨센서스 기준으로 분석을 수행합니다.)"
 
 # 4. 정량화 및 내러티브 정형화 프롬프트
 prompt = f"""
@@ -102,8 +107,14 @@ prompt = f"""
 {combined_sources[:9000]}
 """
 
+# generation_config 옵션 적용 (출력 토큰 2048 제한, 저온도 정밀 분석)
+gen_config = genai.types.GenerationConfig(
+    max_output_tokens=2048,
+    temperature=0.2
+)
+
 try:
-    response = model.generate_content(prompt)
+    response = model.generate_content(prompt, generation_config=gen_config)
     analysis_text = response.text
 except Exception as e:
     analysis_text = f"분석 본문 생성 대체 알림: {e}\n\n[수집 원문 요약]\n" + combined_sources[:2000]
