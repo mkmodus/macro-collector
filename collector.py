@@ -48,7 +48,11 @@ def get_youtube_transcript(video_id):
         return f"(자막 수집 건너뜀: {e})"
 
 YOUTUBE_VIDEOS = {
-    "문홍철_매크로리딩방": "Q-Dq99bMQos"
+    "리스크는 관리하는 것": "85C1Aw5VwTM"
+    "시장이 놓치고 있는 결정적 신호": "L8k1Aq9sWKY"
+    "금리가 무서운 이유": "bLTnEwWdirk"
+    "붕괴의 시그널": "NYro7Ub6elE"
+    "오르는 주식": "a_9EQBkciCU"
 }
 
 collected_transcripts = []
