@@ -1,5 +1,5 @@
 # [최신] 글로벌 IB 매크로 내러티브 & 수급 브리핑
-*최종 갱신 시각: 2026-10-27_1318* | *엔진: models/gemini-2.5-flash*
+*최종 갱신 시각: 2026-10-28_0209* | *엔진: models/gemini-2.5-flash*
 
 분석 본문 생성 대체 알림: 404 This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/get-started).
 
