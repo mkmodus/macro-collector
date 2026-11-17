@@ -1,17 +1,7 @@
 # [최신] 글로벌 IB 매크로 내러티브 & 수급 브리핑
-*최종 갱신 시각: 2026-11-17_0513* | *엔진: gemini-3.8-flash*
+*최종 갱신 시각: 2026-11-17_1645* | *엔진: models/gemini-2.5-flash*
 
-### 퀀트 헤지펀드 매크로 인텔리전스 브리핑
+분석 본문 생성 대체 알림: 404 This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements. We recommend you to use the Interactions API (https://aistudio.google.com/docs/get-started).
 
----
-
-### 1. 글로벌 IB/전문가 핵심 메시지 (매크로 리딩방 동향)
-
-*   **BofA (마이클 하트넷 - 전략팀)**
-    *   **대상 자산**: 미 국채 10년물 금리, 메가캡 테크(빅테크) vs 실물자산(원자재/금)
-    *   **포지셔닝**: **Short Duration (미 국채 매도), Underweight Mega-Tech, Long Real Assets (원자재/골드/현금)**
-    *   **유도 내러티브**: 미국의 구조적 재정적자 확대와 인플레이션 하방 경직성(Sticky Inflation)으로 인해 10년물 금리의 'Higher for Longer' 불가피성 강조. AI CapEx는 막대한 투자 대비 단기 ROI 회수율이 불확실한 ‘자본 파괴 구간’에 진입할 위험이 있으며, 밸류에이션 부담이 극대화된 성장주에서 실물 자산으로의 로테이션을 유도.
-*   **골드만삭스 (데이비드 코스틴 - 주식전략팀)**
-    *   **대상 자산**: S&P 500, AI 인프라 및 하이퍼스케일러 공급망
-    *   **포지셔닝**: **Long Equities (Quality Growth/AI CapEx 수혜주)**
-    *   **유도 내러티브**: 미국 매크로의 '노랜딩(No Landing)' 혹은 '연착륙(Soft Landing)' 시나리오 베이스. 마이크로소프트, 알파벳, 메타 등 빅테크의 CapEx 집행은 2025년에도 전년 대비 두 자릿수 성장을 유지할 것이며, 이는 EPS 성장이 뒷받침되는 펀더멘털 랠리임을 역설. 단기 조정은 기관의 적극적 바이더딥(Buy-the-
+[수집 원문 요약]
+(수집된 외부 원문이 없습니다. 최근 글로벌 거시경제 컨센서스 기준으로 분석을 수행합니다.)
